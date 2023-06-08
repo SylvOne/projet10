@@ -16,6 +16,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'type', 'author', 'created_time']
         read_only_fields = ['created_time', 'author']
 
+
 class ContributorSerializer(serializers.ModelSerializer):
     """
     Serializer pour le modèle `Contributor`.
@@ -30,6 +31,7 @@ class ContributorSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'project']
         read_only_fields = ['project']
 
+
 class IssueSerializer(serializers.ModelSerializer):
     """
     Serializer pour le modèle `Issue`.
@@ -41,8 +43,20 @@ class IssueSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'description', 'assignee', 'priority', 'tag', 'status', 'project', 'created_time', 'author']
+        fields = [
+            'id',
+            'title',
+            'description',
+            'assignee',
+            'priority',
+            'tag',
+            'status',
+            'project',
+            'created_time',
+            'author'
+        ]
         read_only_fields = ['created_time', 'author']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """

@@ -17,7 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from api.views import SignupView, ProjectList, ProjectDetail, ContributorsProjectDetail, IssuesProjectDetail, CommentProjectDetail, CommentUpdateDelete
+from api.views import (
+    SignupView,
+    ProjectList,
+    ProjectDetail,
+    ContributorsProjectDetail,
+    IssuesProjectDetail,
+    CommentProjectDetail,
+    CommentUpdateDelete
+)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,9 +36,21 @@ urlpatterns = [
     path('projects/', ProjectList.as_view(), name='projects_list'),
     path('projects/<int:pk>/', ProjectDetail.as_view(), name='projects_detail'),
     path('projects/<int:pk>/users/', ContributorsProjectDetail.as_view(), name='contributors_project_detail'),
-    path('projects/<int:pk>/users/<int:u_id>/', ContributorsProjectDetail.as_view(), name='contributors_project_detail'),
+    path(
+        'projects/<int:pk>/users/<int:u_id>/',
+        ContributorsProjectDetail.as_view(),
+        name='contributors_project_detail'
+    ),
     path('projects/<int:pk>/issues/', IssuesProjectDetail.as_view(), name='issues_project_detail'),
     path('projects/<int:pk>/issues/<int:id_issue>/', IssuesProjectDetail.as_view(), name='issues_project_detail'),
-    path('projects/<int:pk>/issues/<int:id_issue>/comments/', CommentProjectDetail.as_view(), name='comment_project_detail'),
-    path('projects/<int:pk>/issues/<int:id_issue>/comments/<int:id_comment>/', CommentUpdateDelete.as_view(), name='comment_update_delete'),
+    path(
+        'projects/<int:pk>/issues/<int:id_issue>/comments/',
+        CommentProjectDetail.as_view(),
+        name='comment_project_detail'
+    ),
+    path(
+        'projects/<int:pk>/issues/<int:id_issue>/comments/<int:id_comment>/',
+        CommentUpdateDelete.as_view(),
+        name='comment_update_delete'
+    ),
 ]

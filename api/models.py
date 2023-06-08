@@ -26,7 +26,6 @@ class Issue(models.Model):
     PRIORITY_CHOICES = [('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]
     TAG_CHOICES = [('BUG', 'Bug'), ('TASK', 'Task'), ('ENHANCEMENT', 'Enhancement')]
     STATUS_CHOICES = [('TODO', 'To do'), ('ONGOING', 'Ongoing'), ('DONE', 'Done')]
-
     title = models.CharField(max_length=200)
     description = models.TextField()
     assignee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_issues', null=True, blank=True)
@@ -41,7 +40,7 @@ class Issue(models.Model):
         if self.assignee is None:
             self.assignee = self.author
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
         return self.title
 

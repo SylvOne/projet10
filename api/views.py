@@ -14,20 +14,22 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 
-
 class SignupView(APIView):
     """
     Vue permettant de créer un nouvel utilisateur.
 
     La classe `SignupView` hérite de la classe `APIView` de Django Rest Framework.
-    Elle est utilisée pour inscrire de nouveaux utilisateurs en fournissant des informations de base, telles que le nom d'utilisateur, le mot de passe, le prénom, le nom et l'e-mail. 
-    Des contrôles de validation sont effectués pour vérifier la complexité du mot de passe et la validité de l'adresse e-mail.
+    Elle est utilisée pour inscrire de nouveaux utilisateurs en fournissant des informations de base,
+    telles que le nom d'utilisateur, le mot de passe, le prénom, le nom et l'e-mail.
+    Des contrôles de validation sont effectués pour vérifier la complexité du mot de passe
+    et la validité de l'adresse e-mail.
 
     Méthodes:
-    - `post` : Crée un nouvel utilisateur avec les informations fournies. 
+    - `post` : Crée un nouvel utilisateur avec les informations fournies.
 
     Attributs:
-    - `permission_classes` : Spécifie les classes de permission à utiliser pour déterminer l'accès à la vue. Dans ce cas, l'accès est autorisé à tous.
+    - `permission_classes` : Spécifie les classes de permission à utiliser pour déterminer l'accès à la vue.
+       Dans ce cas, l'accès est autorisé à tous.
     """
     permission_classes = [AllowAny]
 
@@ -39,8 +41,11 @@ class SignupView(APIView):
         email = request.data.get("email")
 
         if not username or not password or not first_name or not last_name or not email:
-            return Response({'error': 'Username, password, first name, last name and email are required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {'error': 'Username, password, first name, last name and email are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Vérification de la complexité du mot de passe
         if not re.match(r'^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}$', password):
             return Response({'error': 'Password is not complex enough'}, status=status.HTTP_400_BAD_REQUEST)
@@ -52,8 +57,14 @@ class SignupView(APIView):
             return Response({'error': 'Invalid email address'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Création de l'utilisateur
-        user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
-        
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email
+        )
+
         if user:
             return Response({'message': 'User created'}, status=status.HTTP_201_CREATED)
         else:
@@ -166,7 +177,7 @@ class ContributorsProjectDetail(generics.RetrieveAPIView):
     """
     serializer_class = ContributorSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_contributors(self):
         project = self.get_project()
         contributors = Contributor.objects.filter(project=project)
@@ -206,7 +217,6 @@ class ContributorsProjectDetail(generics.RetrieveAPIView):
         else:
             return Response({"error": "Error with your request."}, status=status.HTTP_404_NOT_FOUND)
 
-    
 
 class IssuesProjectDetail(APIView):
     """
@@ -216,11 +226,12 @@ class IssuesProjectDetail(APIView):
     Elle est utilisée pour créer, récupérer, mettre à jour et supprimer des problèmes pour un projet spécifique.
 
     Méthodes:
-    - `post` : Crée un nouveau problème pour le projet spécifié. L'utilisateur doit être l'auteur du projet ou un de ses contributeurs.
+    - `post` : Crée un nouveau problème pour le projet spécifié.
+               L'utilisateur doit être l'auteur du projet ou un de ses contributeurs.
     - `get` : Récupère tous les problèmes liés au projet spécifié.
     - `put` : Met à jour un problème spécifique lié au projet. L'utilisateur doit être l'auteur du problème.
     - `delete` : Supprime un problème spécifique lié au projet. L'utilisateur doit être l'auteur du problème.
-    
+
     Attributs:
     - `serializer_class` : Spécifie le sérialiseur à utiliser pour le traitement des données.
     - `permission_classes` : Spécifie les classes de permission à utiliser pour déterminer l'accès à la vue.
@@ -231,29 +242,29 @@ class IssuesProjectDetail(APIView):
     def check_author_or_contributor(self, user, project):
         if project.author != user and not project.contributors.filter(user=user).exists():
             raise PermissionDenied("You are not allowed.")
-    
+
     def check_author_issue(self, user, issue):
         if issue.author != user:
             raise PermissionDenied("You are not allowed.")
 
     def post(self, request, *args, **kwargs):
-            project = get_object_or_404(Project, pk=self.kwargs['pk'])
-            # Je vérifie si l'utilisateur est contributeur ou auteur du projet
-            self.check_author_or_contributor(request.user, project)
-            # Je récupère les données de la requête
-            data = request.data
-            # J'ajoute l'ID du projet aux données de la requête
-            data['project'] = project.id
-            serializer = self.serializer_class(data=data)
-            if serializer.is_valid():
-                serializer.save(project=project, author=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+        project = get_object_or_404(Project, pk=self.kwargs['pk'])
+        # Je vérifie si l'utilisateur est contributeur ou auteur du projet
+        self.check_author_or_contributor(request.user, project)
+        # Je récupère les données de la requête
+        data = request.data
+        # J'ajoute l'ID du projet aux données de la requête
+        data['project'] = project.id
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save(project=project, author=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def get_issues(self, project):
         issues = Issue.objects.filter(project=project)
         return issues
-    
+
     def get_issue(self, project, id_issue):
         issue = Issue.objects.get(project=project, pk=id_issue)
         return issue
@@ -288,7 +299,7 @@ class IssuesProjectDetail(APIView):
         self.check_author_issue(request.user, issue)
         issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-       
+
 
 class CommentProjectDetail(APIView):
     """
@@ -298,7 +309,8 @@ class CommentProjectDetail(APIView):
     Elle est utilisée pour créer et récupérer les commentaires d'un problème spécifique d'un projet.
 
     Méthodes:
-    - `post` : Crée un nouveau commentaire pour le problème spécifié dans un projet. L'utilisateur doit être l'auteur du projet ou un de ses contributeurs.
+    - `post` : Crée un nouveau commentaire pour le problème spécifié dans un projet.
+               L'utilisateur doit être l'auteur du projet ou un de ses contributeurs.
     - `get` : Récupère tous les commentaires liés au problème spécifié dans un projet.
 
     Attributs:
@@ -311,30 +323,30 @@ class CommentProjectDetail(APIView):
     def check_author_or_contributor(self, user, project):
         if project.author != user and not project.contributors.filter(user=user).exists():
             raise PermissionDenied("You are not allowed.")
-    
+
     def check_issue_of_project(self, project, issue):
         if issue.project != project:
             raise PermissionDenied("You are not allowed.")
 
     def post(self, request, *args, **kwargs):
-            project = get_object_or_404(Project, pk=self.kwargs['pk'])
-            issue = get_object_or_404(Issue, pk=self.kwargs['id_issue'])
-            # Je vérifie si l'utilisateur est contributeur ou auteur du projet
-            # Je vérifie également si le problème fait bien parti du projet donné
-            self.check_author_or_contributor(request.user, project)
-            self.check_issue_of_project(project, issue)
-            # Je récupère les données de la requête
-            data = request.data
-            serializer = self.serializer_class(data=data)
-            if serializer.is_valid():
-                serializer.save(issue=issue, author=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        project = get_object_or_404(Project, pk=self.kwargs['pk'])
+        issue = get_object_or_404(Issue, pk=self.kwargs['id_issue'])
+        # Je vérifie si l'utilisateur est contributeur ou auteur du projet
+        # Je vérifie également si le problème fait bien parti du projet donné
+        self.check_author_or_contributor(request.user, project)
+        self.check_issue_of_project(project, issue)
+        # Je récupère les données de la requête
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save(issue=issue, author=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_comments(self, issue):
         issues = Comment.objects.filter(issue=issue)
         return issues
-    
+
     def get(self, request, *args, **kwargs):
         project = get_object_or_404(Project, pk=self.kwargs['pk'])
         issue = get_object_or_404(Issue, pk=self.kwargs['id_issue'])
@@ -352,12 +364,15 @@ class CommentUpdateDelete(APIView):
     Vue permettant de manipuler un commentaire spécifique associé à un problème dans un projet.
 
     La classe `CommentUpdateDelete` hérite de la classe `APIView` de Django Rest Framework.
-    Elle est utilisée pour récupérer, mettre à jour et supprimer un commentaire spécifique d'un problème dans un projet.
+    Elle est utilisée pour récupérer, mettre à jour et supprimer un commentaire
+    spécifique d'un problème dans un projet.
 
     Méthodes:
     - `get` : Récupère un commentaire spécifique lié à un problème dans un projet.
-    - `put` : Met à jour un commentaire spécifique lié à un problème dans un projet. L'utilisateur doit être l'auteur du commentaire.
-    - `delete` : Supprime un commentaire spécifique lié à un problème dans un projet. L'utilisateur doit être l'auteur du commentaire.
+    - `put` : Met à jour un commentaire spécifique lié à un problème dans un projet.
+              L'utilisateur doit être l'auteur du commentaire.
+    - `delete` : Supprime un commentaire spécifique lié à un problème dans un projet.
+              L'utilisateur doit être l'auteur du commentaire.
 
     Attributs:
     - `serializer_class` : Spécifie le sérialiseur à utiliser pour le traitement des données.
@@ -369,11 +384,11 @@ class CommentUpdateDelete(APIView):
     def check_author_or_contributor(self, user, project):
         if project.author != user and not project.contributors.filter(user=user).exists():
             raise PermissionDenied("You are not allowed.")
-    
+
     def check_issue_of_project(self, project, issue):
         if issue.project != project:
             raise PermissionDenied("You are not allowed.")
-    
+
     def check_comment_of_issue(self, issue, comment):
         if comment.issue != issue:
             raise PermissionDenied("You are not allowed.")
@@ -385,7 +400,7 @@ class CommentUpdateDelete(APIView):
     def get_comments(self, issue):
         issues = Comment.objects.filter(issue=issue)
         return issues
-    
+
     def get(self, request, *args, **kwargs):
         project = get_object_or_404(Project, pk=self.kwargs['pk'])
         issue = get_object_or_404(Issue, pk=self.kwargs['id_issue'])
@@ -433,4 +448,3 @@ class CommentUpdateDelete(APIView):
         self.check_comment_of_issue(issue, comment)
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-        
