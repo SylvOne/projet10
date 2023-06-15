@@ -56,7 +56,7 @@ avec la commande `python manage.py runserver`.
 
 - L'API est désormais accessible à l'adresse suivante : `http://127.0.0.1:8000`
   
-- Pour utiliser cette API veuillez vour référer à la documentation disponible ici :<br>
+- Pour tester cette API je vous recommande d'utiliser [Postman](https://www.postman.com/) ainsi que de vous référer à la documentation disponible ici :<br>
   [Voir la documentation de l'API](https://documenter.getpostman.com/view/17650939/2s93sZ8F2h#5ca65989-4f0e-4cb0-bf73-9433af48f6e4)
   
 ## Rapport Flake8-HTML

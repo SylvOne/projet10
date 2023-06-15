@@ -190,6 +190,10 @@ class ContributorsProjectDetail(generics.RetrieveAPIView):
         if project.author != user:
             raise PermissionDenied('You are not allowed.')
 
+    def contributor_exist(self, user, project):
+        if project.contributors.filter(user=user).exists():
+            raise PermissionDenied("You are not allowed.")
+
     def get(self, request, *args, **kwargs):
         contributors = self.get_contributors()
         serializer = self.serializer_class(contributors, many=True)
@@ -199,6 +203,14 @@ class ContributorsProjectDetail(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
         project = self.get_project()
         self.check_author(request.user, project)
+        # Je récupère les données de la requête
+        data = request.data
+        # Je vérifie si le contributeur n'est pas déja existant
+        # ( Je vérifie en premier si 'user' existe dans les données de la requête)
+        contributor_id = data.get('user')
+        if contributor_id is not None:
+            user_contributor = get_object_or_404(User, pk=contributor_id)
+            self.contributor_exist(user_contributor, project)
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -253,6 +265,12 @@ class IssuesProjectDetail(APIView):
         self.check_author_or_contributor(request.user, project)
         # Je récupère les données de la requête
         data = request.data
+        # Je vérifie si l'assignée est bien un contributeur du projet
+        # ( Je vérifie en premier si 'assignee' existe dans les données de la requête)
+        assignee_id = data.get('assignee')
+        if assignee_id is not None:
+            user_assignee = get_object_or_404(User, pk=assignee_id)
+            self.check_author_or_contributor(user_assignee, project)
         # J'ajoute l'ID du projet aux données de la requête
         data['project'] = project.id
         serializer = self.serializer_class(data=data)
